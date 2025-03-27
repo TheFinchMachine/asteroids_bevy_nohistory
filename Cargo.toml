@@ -1,0 +1,36 @@
+[package]
+name = "asteroids"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# unclear if this improves perf when using the mold linker
+#bevy = { version = "0.15", features = ["dynamic_linking"] }
+bevy = "0.15"
+log = { version = "*", features = [
+    "max_level_debug",
+    "release_max_level_warn",
+] }
+bevy_turborand = "0.10.0"
+wasm-bindgen = "=0.2.100"
+bevy_common_assets = {version="0.12", features = ["ron"]}
+serde = { version = "1" } # Needed for bevy_common_assets
+web-sys = "0.3.77"
+#bevy_asset_loader = "0.22"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+# slower compile times, marginal perf improvements
+codegen-units = 1
+lto = "thin"
+
+[profile.wasm-release]
+# wasm really likes small binaries, so optimize for size.
+inherits = "release"
+opt-level = "s"
+strip = "debuginfo"
