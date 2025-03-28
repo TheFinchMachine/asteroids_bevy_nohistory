@@ -1,0 +1,53 @@
+(
+    bindings: [
+        (
+            binding: KeyboardPressed(ArrowUp),
+            input: (
+                action: MoveForward,
+                value: 1.0,
+            )
+        ),
+        (
+            binding: KeyboardPressed(ArrowDown),
+            input: (
+                action: MoveForward,
+                value: -1.0,
+            )
+        ),
+        (
+            binding: KeyboardPressed(ArrowRight),
+            input: (
+                action: Rotate,
+                value: -1.0,
+            )
+        ),
+        (
+            binding: KeyboardPressed(ArrowLeft),
+            input: (
+                action: Rotate,
+                value: 1.0,
+            )
+        ),
+        (
+            binding: KeyboardPressed(Space),
+            input: (
+                action: Shoot,
+                value: 1.0,
+            )
+        ),
+        (
+            binding: KeyboardJustPressed(Escape),
+            input: (
+                action: Pause,
+                value: 1.0,
+            )
+        ),
+        (
+            binding: KeyboardJustPressed(KeyR),
+            input: (
+                action: Restart,
+                value: 1.0,
+            )
+        ),
+    ],
+)

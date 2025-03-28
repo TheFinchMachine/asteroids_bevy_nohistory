@@ -7,18 +7,16 @@ use crate::score::*;
 use crate::ship::*;
 use crate::spawner::*;
 use crate::states::*;
+use crate::schedule::SchudulePlugin;
 use bevy::prelude::*;
 
 use bevy_turborand::prelude::*;
-use control_2d::Control2dPlugin;
-use schedule::InGameSet;
-use schedule::SchudulePlugin;
 
 mod asteroid;
 mod bodies;
 mod bullet;
 mod control;
-mod control_2d;
+mod input_actions;
 mod grid;
 mod input;
 mod schedule;
@@ -38,12 +36,10 @@ impl Plugin for AsteroidsGamePlugin {
         app.add_plugins(SchudulePlugin);
         app.add_plugins(ShipPlugin);
         app.add_plugins(BodiesPlugin);
-        app.add_plugins(Control2dPlugin);
         app.add_plugins(StatePlugin);
         app.add_plugins(GridPlugin);
         app.add_plugins(BulletPlugin);
         app.add_plugins(AsteroidsPlugin);
-
-        app.add_systems(Update, (handle_player_input,).in_set(InGameSet::GameInput));
+        app.add_plugins(InputPlugin);
     }
 }

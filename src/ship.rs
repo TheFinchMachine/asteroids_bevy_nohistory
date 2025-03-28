@@ -2,7 +2,7 @@ use crate::{
     bodies::*,
     bullet::CreateBullet,
     control::{Pawn, PlayerController, ShipPawn},
-    control_2d::{Accelerate, AccelerateAngular, Shoot},
+    input_actions::*,
     schedule::InGameSet,
     GameState,
 };
@@ -156,13 +156,20 @@ fn apply_accel(
     configs: Res<Assets<ShipConfig>>,
     config_handle: Res<ShipConfigHandle>,
     mut ships: Query<(&mut Acceleration, &ShipPawn), With<Ship>>,
-    mut events: EventReader<Accelerate>,
+    mut events: EventReader<InputEvent>,
 ) {
+    // Reset acceleration for all ships when no events are present
+    for (mut acceleration, _) in ships.iter_mut() {
+        acceleration.0 = Vec2::ZERO;
+    }
+
     for event in events.read() {
-        for (mut acceleration, pawn) in ships.iter_mut() {
-            if let Some(config) = configs.get(config_handle.config.id()) {
-                if pawn.get_controller() == &event.controller {
-                    acceleration.0 = config.speed * event.direction;
+        if event.input.action == Actions::MoveForward {
+            for (mut acceleration, pawn) in ships.iter_mut() {
+                if let Some(config) = configs.get(config_handle.config.id()) {
+                    if pawn.get_controller() == &event.controller {
+                        acceleration.0 = Vec2::new(0.0, config.speed * event.input.value);
+                    }
                 }
             }
         }
@@ -173,13 +180,20 @@ fn apply_accel_ang(
     configs: Res<Assets<ShipConfig>>,
     config_handle: Res<ShipConfigHandle>,
     mut ships: Query<(&mut AngularAcceleration, &ShipPawn), With<Ship>>,
-    mut events: EventReader<AccelerateAngular>,
+    mut events: EventReader<InputEvent>,
 ) {
+    //reset all angular acceleration
+    for (mut angular_accel, _) in ships.iter_mut() {
+        angular_accel.0 = 0.0;
+    }
+
     for event in events.read() {
-        for (mut angular_accel, pawn) in ships.iter_mut() {
-            if let Some(config) = configs.get(config_handle.config.id()) {
-                if pawn.get_controller() == &event.controller {
-                    angular_accel.0 = config.speed_angular * event.direction;
+        if event.input.action == Actions::Rotate {
+            for (mut angular_accel, pawn) in ships.iter_mut() {
+                if let Some(config) = configs.get(config_handle.config.id()) {
+                    if pawn.get_controller() == &event.controller {
+                        angular_accel.0 = config.speed_angular * event.input.value;
+                    }
                 }
             }
         }
@@ -198,22 +212,24 @@ fn shoot(
         ),
         With<Ship>,
     >,
-    mut events: EventReader<Shoot>,
+    mut events: EventReader<InputEvent>,
     mut create_bullet: EventWriter<CreateBullet>,
     configs: Res<Assets<ShipConfig>>,
     config_handle: Res<ShipConfigHandle>,
 ) {
     for event in events.read() {
-        for (position, rotation, mut last_shot_time, pawn) in ships.iter_mut() {
-            if let Some(config) = configs.get(config_handle.config.id()) {
-                if pawn.get_controller() == &event.controller {
-                    let time_elapsed = time.elapsed();
-                    if time_elapsed - last_shot_time.0 > Duration::from_millis(config.fire_delay) {
-                        create_bullet.send(CreateBullet {
-                            position: position.0,
-                            rotation: rotation.0,
-                        });
-                        last_shot_time.0 = time_elapsed;
+        if event.input.action == Actions::Shoot {
+            for (position, rotation, mut last_shot_time, pawn) in ships.iter_mut() {
+                if let Some(config) = configs.get(config_handle.config.id()) {
+                    if pawn.get_controller() == &event.controller {
+                        let time_elapsed = time.elapsed();
+                        if time_elapsed - last_shot_time.0 > Duration::from_millis(config.fire_delay) {
+                            create_bullet.send(CreateBullet {
+                                position: position.0,
+                                rotation: rotation.0,
+                            });
+                            last_shot_time.0 = time_elapsed;
+                        }
                     }
                 }
             }

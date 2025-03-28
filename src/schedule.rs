@@ -24,7 +24,6 @@ impl Plugin for SchudulePlugin {
                 InGameSet::LoadEntities,
                 InGameSet::DespawnEntities,
                 // apply_deferred(Flush)
-                InGameSet::GameInput,
                 InGameSet::UpdateEntities,
                 InGameSet::CollisionDetection,
                 InGameSet::CollisionReaction,
@@ -33,12 +32,17 @@ impl Plugin for SchudulePlugin {
                 .chain()
                 .run_if(in_state(GameState::InGame)),
         );
+        app.configure_sets(
+            Update,
+            InGameSet::GameInput
+                .after(InGameSet::DespawnEntities)
+                .before(InGameSet::UpdateEntities),
+        );
         app.add_systems(
             Update,
             apply_deferred
                 .after(InGameSet::DespawnEntities)
                 .before(InGameSet::GameInput),
         );
-        app.configure_sets(Update, (InGameSet::MenuInput));
     }
 }

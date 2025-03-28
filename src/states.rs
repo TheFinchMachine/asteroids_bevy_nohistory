@@ -1,4 +1,5 @@
 use crate::schedule::InGameSet;
+use crate::input_actions::*;
 use bevy::prelude::*;
 
 #[derive(Component, Debug)]
@@ -15,17 +16,19 @@ pub enum GameState {
 fn pause_system(
     mut next_state: ResMut<NextState<GameState>>,
     state: Res<State<GameState>>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut events: EventReader<InputEvent>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::Escape) {
-        match state.get() {
-            GameState::InGame => {
-                next_state.set(GameState::Paused);
+    for event in events.read() {
+        if event.input.action == Actions::Pause {
+            match state.get() {
+                GameState::InGame => {
+                    next_state.set(GameState::Paused);
+                }
+                GameState::Paused => {
+                    next_state.set(GameState::InGame);
+                }
+                _ => (),
             }
-            GameState::Paused => {
-                next_state.set(GameState::InGame);
-            }
-            _ => (),
         }
     }
 }
@@ -33,14 +36,16 @@ fn pause_system(
 fn restart_game(
     mut next_state: ResMut<NextState<GameState>>,
     state: Res<State<GameState>>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut events: EventReader<InputEvent>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::KeyR) {
-        match state.get() {
-            GameState::GameOver => {
-                next_state.set(GameState::InGame);
+    for event in events.read() {
+        if event.input.action == Actions::Restart {
+            match state.get() {
+                GameState::GameOver => {
+                    next_state.set(GameState::InGame);
+                }
+                _ => (),
             }
-            _ => (),
         }
     }
 }
@@ -84,7 +89,7 @@ impl Plugin for StatePlugin {
         app.init_state::<GameState>();
         app.add_systems(
             Update,
-            (pause_system, restart_game).in_set(InGameSet::MenuInput),
+            (pause_system, restart_game).in_set(InGameSet::GameInput),
         );
         app.add_systems(OnEnter(GameState::GameOver), spawn_restart_message);
         app.add_systems(OnExit(GameState::GameOver), despawn_restart_message);
