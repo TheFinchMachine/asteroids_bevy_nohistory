@@ -30,6 +30,22 @@ fn setup(
     commands.insert_resource(InputConfigHandle(handle));
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Asset, TypePath)]
+struct InputConfig {
+    bindings: Vec<Binding>,
+}
+
+// for tracking config load
+#[derive(Resource)]
+struct InputConfigHandle(Handle<InputConfig>);
+
+#[derive(Resource)]
+struct LoadInput(bool);
+
+fn load_input(load: Res<LoadInput>) -> bool {
+    load.0
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 enum InputBinding {
     KeyboardPressed(KeyCode),
@@ -45,17 +61,9 @@ struct Binding {
     input: Input,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Asset, TypePath)]
-struct InputConfig {
-    bindings: Vec<Binding>,
-}
-
-#[derive(Resource)]
-struct InputConfigHandle(Handle<InputConfig>);
-
+// Allows for different actions for different input types
 type ActionFn = Box<dyn Fn(Entity) -> InputEvent + Send + Sync>;
 
-// Resource wrapper
 #[derive(Resource)]
 struct InputMap(HashMap<InputBinding, ActionFn>);
 
@@ -69,13 +77,6 @@ fn build_input_map_from_config(config: InputConfig) -> InputMap {
         }));
     }
     InputMap(map)
-}
-
-#[derive(Resource)]
-struct LoadInput(bool);
-
-fn load_input(load: Res<LoadInput>) -> bool {
-    load.0
 }
 
 fn build_input_map_when_loaded(
